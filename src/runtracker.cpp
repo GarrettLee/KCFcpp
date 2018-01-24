@@ -113,7 +113,6 @@ int main(int argc, char* argv[]){
 		// Read each frame from the list
 		cap.read(frame);
 
-		Tic();
 		// First frame, give the groundtruth to the tracker
 		if (nFrames == 0) {
 			tracker.init( Rect(0, 0, 100, 100), frame );
@@ -126,7 +125,6 @@ int main(int argc, char* argv[]){
 			rectangle( frame, Point( result.x, result.y ), Point( result.x+result.width, result.y+result.height), Scalar( 0, 255, 255 ), 1, 8 );
 			//resultsFile << result.x << "," << result.y << "," << result.width << "," << result.height << endl;
 		}
-		printf("Runtime: %.4f\n", Toc());
 		nFrames++;
 		if (nFrames % 100 == 0)
                  printf("Frame: %d\n", nFrames);

@@ -210,8 +210,8 @@ cv::Rect KCFTracker::update(cv::Mat image)
           _roi.height /= scale_step;
          }
         }
-
     }
+    last_frame_score = peak_value;
 
     // Adjust by cell size and _scale
     _roi.x = cx - _roi.width / 2.0f + ((float) res.x * cell_size * _scale);

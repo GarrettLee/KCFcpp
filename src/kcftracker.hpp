@@ -110,7 +110,7 @@ public:
     int template_size; // template size
     float scale_step; // scale step for multi-scale estimation
     float scale_weight;  // to downweight detection scores of other scales for added stability
-
+    float last_frame_score; 
 protected:
     // Detect object in the current frame.
     cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value);
