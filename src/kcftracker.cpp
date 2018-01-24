@@ -186,27 +186,31 @@ cv::Rect KCFTracker::update(cv::Mat image)
 
     if (scale_step != 1) {
         // Test at a smaller _scale
-        float new_peak_value;
-        cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, 1.0f / scale_step), new_peak_value);
-
-        if (scale_weight * new_peak_value > peak_value) {
-            res = new_res;
-            peak_value = new_peak_value;
-            _scale /= scale_step;
-            _roi.width /= scale_step;
-            _roi.height /= scale_step;
-        }
+        float smaller_peak_value;
+        cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, 1.0f / scale_step), smaller_peak_value);
 
         // Test at a bigger _scale
-        new_res = detect(_tmpl, getFeatures(image, 0, scale_step), new_peak_value);
+        float bigger_peak_value;
+        new_res = detect(_tmpl, getFeatures(image, 0, scale_step), bigger_peak_value);
 
-        if (scale_weight * new_peak_value > peak_value) {
-            res = new_res;
-            peak_value = new_peak_value;
-            _scale *= scale_step;
-            _roi.width *= scale_step;
-            _roi.height *= scale_step;
+        if (bigger_peak_value > smaller_peak_value) {
+         if (scale_weight * bigger_peak_value > peak_value) {
+          res = new_res;
+          peak_value = bigger_peak_value;
+          _scale *= scale_step;
+          _roi.width *= scale_step;
+          _roi.height *= scale_step;
+         }
+        } else {
+         if (scale_weight * smaller_peak_value > peak_value) {
+          res = new_res;
+          peak_value = smaller_peak_value;
+          _scale /= scale_step;
+          _roi.width /= scale_step;
+          _roi.height /= scale_step;
+         }
         }
+
     }
 
     // Adjust by cell size and _scale

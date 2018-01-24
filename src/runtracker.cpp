@@ -91,49 +91,52 @@ int main(int argc, char* argv[]){
 
 	
 	// Read Images
-	ifstream listFramesFile;
-	string listFrames = "images.txt";
-	listFramesFile.open(listFrames);
-	string frameName;
-
+	//ifstream listFramesFile;
+	//string listFrames = "images.txt";
+	//listFramesFile.open(listFrames);
+	//string frameName;
+    
 
 	// Write Results
-	ofstream resultsFile;
-	string resultsPath = "output.txt";
-	resultsFile.open(resultsPath);
+	//ofstream resultsFile;
+	//string resultsPath = "output.txt";
+	//resultsFile.open(resultsPath);
 
 	// Frame counter
 	int nFrames = 0;
 
+        cv::VideoCapture cap = cv::VideoCapture(0);
 
-	while ( getline(listFramesFile, frameName) ){
-		frameName = frameName;
+	while ( true /*getline(listFramesFile, frameName)*/ ){
+		//frameName = frameName;
 
 		// Read each frame from the list
-		frame = imread(frameName, CV_LOAD_IMAGE_COLOR);
+		cap.read(frame);
 
+		Tic();
 		// First frame, give the groundtruth to the tracker
 		if (nFrames == 0) {
-			tracker.init( Rect(xMin, yMin, width, height), frame );
+			tracker.init( Rect(0, 0, 100, 100), frame );
 			rectangle( frame, Point( xMin, yMin ), Point( xMin+width, yMin+height), Scalar( 0, 255, 255 ), 1, 8 );
-			resultsFile << xMin << "," << yMin << "," << width << "," << height << endl;
+			//resultsFile << xMin << "," << yMin << "," << width << "," << height << endl;
 		}
 		// Update
 		else{
 			result = tracker.update(frame);
 			rectangle( frame, Point( result.x, result.y ), Point( result.x+result.width, result.y+result.height), Scalar( 0, 255, 255 ), 1, 8 );
-			resultsFile << result.x << "," << result.y << "," << result.width << "," << result.height << endl;
+			//resultsFile << result.x << "," << result.y << "," << result.width << "," << result.height << endl;
 		}
-
+		printf("Runtime: %.4f\n", Toc());
 		nFrames++;
-
+		if (nFrames % 100 == 0)
+                 printf("Frame: %d\n", nFrames);
 		if (!SILENT){
 			imshow("Image", frame);
 			waitKey(1);
 		}
 	}
-	resultsFile.close();
+	//resultsFile.close();
 
-	listFile.close();
+	//listFile.close();
 
 }
