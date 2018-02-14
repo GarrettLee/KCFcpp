@@ -93,18 +93,13 @@ class KCFTracker : public Tracker
 public:
     // Constructor
     KCFTracker(bool hog = true, bool fixed_window = true, bool multiscale = true, bool lab = true);
-    ~KCFTracker();
+
     // Initialize tracker 
     virtual void init(const cv::Rect &roi, cv::Mat image);
     
     // Update position based on the new frame
     virtual cv::Rect update(cv::Mat image);
-    
-    virtual cv::Rect GetPrediction(cv::Mat image);
-    virtual int RefreshModel(cv::Mat image);
-    virtual int Refine(cv::Rect refined_bbox);
-    virtual int RefreshModel(cv::Mat image, double interp_factor);
-   
+
     float interp_factor; // linear interpolation factor for adaptation
     float sigma; // gaussian kernel bandwidth
     float lambda; // regularization
@@ -117,9 +112,6 @@ public:
     float scale_weight;  // to downweight detection scores of other scales for added stability
     float last_frame_score; 
 protected:
-    
-    cv::Mat* feature_;
-
     // Detect object in the current frame.
     cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value);
 

@@ -92,8 +92,6 @@ the use of this software, even if advised of the possibility of such damage.
 KCFTracker::KCFTracker(bool hog, bool fixed_window, bool multiscale, bool lab)
 {
 
- this->feature_ = new cv::Mat();
-
     // Parameters equal in all cases
     lambda = 0.0001;
     padding = 2.5; 
@@ -157,10 +155,6 @@ KCFTracker::KCFTracker(bool hog, bool fixed_window, bool multiscale, bool lab)
         template_size = 1;
         scale_step = 1;
     }
-}
-
-KCFTracker::~KCFTracker() {
- delete this->feature_;
 }
 
 // Initialize tracker 
@@ -229,88 +223,12 @@ cv::Rect KCFTracker::update(cv::Mat image)
     if (_roi.y + _roi.height <= 0) _roi.y = -_roi.height + 2;
 
     assert(_roi.width >= 0 && _roi.height >= 0);
-    train(getFeatures(image, 0), interp_factor);
+    cv::Mat x = getFeatures(image, 0);
+    train(x, interp_factor);
+
     return _roi;
 }
 
-cv::Rect KCFTracker::GetPrediction(cv::Mat image) {
-     if (_roi.x + _roi.width <= 0) _roi.x = -_roi.width + 1;
-    if (_roi.y + _roi.height <= 0) _roi.y = -_roi.height + 1;
-    if (_roi.x >= image.cols - 1) _roi.x = image.cols - 2;
-    if (_roi.y >= image.rows - 1) _roi.y = image.rows - 2;
-
-    float cx = _roi.x + _roi.width / 2.0f;
-    float cy = _roi.y + _roi.height / 2.0f;
-
-
-    float peak_value;
-    cv::Point2f res = detect(_tmpl, getFeatures(image, 0, 1.0f), peak_value);
-
-    if (scale_step != 1) {
-        // Test at a smaller _scale
-        float smaller_peak_value;
-        cv::Point2f new_res = detect(_tmpl, getFeatures(image, 0, 1.0f / scale_step), smaller_peak_value);
-
-        // Test at a bigger _scale
-        float bigger_peak_value;
-        new_res = detect(_tmpl, getFeatures(image, 0, scale_step), bigger_peak_value);
-
-        if (bigger_peak_value > smaller_peak_value) {
-         if (scale_weight * bigger_peak_value > peak_value) {
-          res = new_res;
-          peak_value = bigger_peak_value;
-          _scale *= scale_step;
-          _roi.width *= scale_step;
-          _roi.height *= scale_step;
-         }
-        } else {
-         if (scale_weight * smaller_peak_value > peak_value) {
-          res = new_res;
-          peak_value = smaller_peak_value;
-          _scale /= scale_step;
-          _roi.width /= scale_step;
-          _roi.height /= scale_step;
-         }
-        }
-    }
-    last_frame_score = peak_value;
-
-    // Adjust by cell size and _scale
-    _roi.x = cx - _roi.width / 2.0f + ((float) res.x * cell_size * _scale);
-    _roi.y = cy - _roi.height / 2.0f + ((float) res.y * cell_size * _scale);
-
-    if (_roi.x >= image.cols - 1) _roi.x = image.cols - 1;
-    if (_roi.y >= image.rows - 1) _roi.y = image.rows - 1;
-    if (_roi.x + _roi.width <= 0) _roi.x = -_roi.width + 2;
-    if (_roi.y + _roi.height <= 0) _roi.y = -_roi.height + 2;
-
-    assert(_roi.width >= 0 && _roi.height >= 0);
-    return _roi;
-}
-
-int KCFTracker::RefreshModel(cv::Mat image) {
- //static int frame_index = 1;
- //frame_index += 1;
- //double interp_factor = 1.0 / (double) frame_index;
- train(getFeatures(image, 0), interp_factor);
- return 0;
-}
-
-int KCFTracker::RefreshModel(cv::Mat image, double interp_factor) {
- //static int frame_index = 1;
- //frame_index += 1;
- //double interp_factor = 1.0 / (double) frame_index;
- train(getFeatures(image, 0), interp_factor);
- return 0;
-}
-
-int KCFTracker::Refine(cv::Rect refined_bbox) {
- this->_roi.x = refined_bbox.x;
- this->_roi.y = refined_bbox.y;
- this->_roi.width = refined_bbox.width;
- this->_roi.height = refined_bbox.height;
- return 0;
-}
 
 // Detect object in the current frame.
 cv::Point2f KCFTracker::detect(cv::Mat z, cv::Mat x, float &peak_value)
